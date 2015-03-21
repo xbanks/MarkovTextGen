@@ -1,0 +1,7 @@
+Need to do:
+	Training Stage
+		Input text files
+		create hash table with all words
+			within the hash values, keep an array of the next word in the sentence. keeping percentages for them
+		save this hash table to some file using YAML or that other thing
+	Gen Stage
