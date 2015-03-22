@@ -7,7 +7,7 @@ require "./train.rb"
 # This is done using the given hash that should have been created using the given train.rb file
 def generate_sentence(hash, first_word, num_words = 10)
 	sentence = [first_word]
-	num_words.times { sentence << hash[sentence[-1]][:HASH].keys.sample if hash[sentence[-1]] }
+	(num_words-1).times { sentence << hash[sentence[-1]][:HASH].keys.sample if hash[sentence[-1]] }
 
 	return sentence.join(" ")
 end
@@ -19,7 +19,7 @@ def load_hash(hash = nil)
 	print "filename: "
 
 	filename = STDIN.gets.chomp
-	filename = filename.downcase == "default" ? default : filename
+	filename = filename.downcase == "def" ? default : filename
 	filetype = filename.split(".").last
 	
 	file = File.open(filename, "r") if exists = File.exist?(filename)
@@ -71,9 +71,23 @@ end
 def make_sentence(hash_table)
 	print "Start word: "
 	start_word = STDIN.gets.downcase.chomp 
-	sentence = generate_sentence(hash_table, start_word, 100)
+	print "Word count: "
+	word_count = STDIN.gets.chomp.to_i
+	sentence = generate_sentence(hash_table, start_word, word_count)
+	
 	puts "#{sentence}\n"
+	outfile = File.open("genout.txt", "a")
+	outfile.puts "-----Start word: #{start_word}------"
+	outfile.puts "Word count: #{word_count}"
+	outfile.puts "TEXT = #{sentence}"
+	outfile.close
+	puts "DONE"
 end
 
 hash = get_hash
-make_sentence(hash)
+another = 'y'
+while(another == 'y')
+	make_sentence(hash)
+	print "Another? <y/n>"
+	another = STDIN.gets.downcase.chomp
+end

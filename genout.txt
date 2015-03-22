@@ -1,0 +1,6 @@
+-----Start word: hello------
+Word count: 10
+TEXT = hello when she all dudley's gang, he began. he whispered
+-----Start word: fact------
+Word count: 12
+TEXT = fact was making loud, snide remarks about why it slumped in beginners'
