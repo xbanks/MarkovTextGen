@@ -3,13 +3,14 @@ require 'json'
 require 'benchmark'
 
 # Makes sure we actually have files to use
+=begin
 puts "Number of args: #{ARGV.size}"
 if ARGV.size == 0
 	puts "Usage: ruby train.rb <text files>"
 	puts "ex: ruby train.rb example1.txt example2.txt example3.txt"
 	exit(0)
 end
-
+=end
 # Creates or updates a hash table using the input text file
 def create_hash(text_file, hash_table = nil)
 	# line = text_file.gets
@@ -43,14 +44,14 @@ def analysis(hash, greater_than_value = 300)
 	most = []
 	hash.each { |k,v| most << [k, v[:HASH].size] if v[:HASH].size > greater_than_value }
 
-	puts "\tWords with >#{greater_than_val} values:"
+	puts "\tWords with >#{greater_than_value} values:"
 	most.each { |a| puts "\t\t#{a}" }
 	puts "End Analysis..."
 end
 
 # Dumps the contents of the given hash into two files
 # One using YAML and another using JSON to benchmark the speed of each method
-def dump(hash, yaml_filename = "yaml_output.txt", json_filename = "json_output.txt")
+def dump(hash, yaml_filename = "yaml_output.yaml", json_filename = "json_output.json")
 	puts "Dumping..."
 	out_file1 = File.open(yaml_filename, "w")
 	out_file2 = File.open(json_filename, "w")
@@ -72,10 +73,8 @@ end
 
 # Opens two files, one created using YAML and the other, JSON
 # Compares the hash contents of each to determine whether or not they match
-def check_files(yaml_filename = "yaml_output.txt", json_filename = "json_output.txt")
+def check_files(yaml_filename = "yaml_output.yaml", json_filename = "json_output.json")
 	puts "Checking Files..."
-	yaml_filename = "yaml_output.txt"
-	json_filename = "json_output.txt"
 	
 	yaml_in_file1 = File.open(yaml_filename, "r")
 	json_in_file2 = File.open(json_filename, "r")
@@ -112,9 +111,9 @@ def check_files(yaml_filename = "yaml_output.txt", json_filename = "json_output.
 	puts "Done..."
 end
 
-def text_to_hash
+def text_to_hash(args = ARGV)
 	hash_table = nil
-	ARGV.each do |file|
+	args.each do |file|
 		txt_file = File.open(file, "r")
 		print "Adding #{file} to hash..."
 		hash_table = create_hash(txt_file, hash_table)
@@ -124,6 +123,7 @@ def text_to_hash
 	hash_table
 end
 
+=begin
 hash_table = text_to_hash
 print "Dump? <y/n> "
 dump(hash_table) if STDIN.gets.chomp.downcase == 'y'
@@ -131,3 +131,4 @@ print "Analysis? <y/n> "
 analysis(hash_table) if STDIN.gets.chomp.downcase == 'y'
 print "Check Files? <y/n> "
 check_files if STDIN.gets.chomp.downcase == 'y'
+=end
