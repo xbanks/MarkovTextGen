@@ -1,15 +1,43 @@
-require 'yaml'
-require 'json'
-require "benchmark"
-require "./train.rb"
+require "./gen_utils.rb"
 
 # Generates a sentence with up to @num_words amount of words based on the @first word
 # This is done using the given hash that should have been created using the given train.rb file
+
+
+
 def generate_sentence(hash, first_word, num_words = 10)
 	sentence = [first_word]
-	(num_words-1).times { sentence << hash[sentence[-1]][:HASH].keys.sample if hash[sentence[-1]] }
+	sentence_ends = ['.', '!', '?']
+
+	(num_words-1).times do
+		arr = []
+		arr << sentence[-2] if sentence.size > 1
+		arr << sentence[-1]
+		# puts hash[arr]
+		if hash[arr]
+			sentence << draw(hash[arr][:HASH]) 
+		elsif hash[arr.last]
+			sentence << draw(hash[arr.last][:HASH])
+		else
+			return sentence.join(" ")
+		end
+
+		sentence_ends.each do |delim|
+			return sentence.join(" ") if sentence.last.include? delim
+		end
+	end 
 
 	return sentence.join(" ")
+end
+
+def draw(hash)
+	rand = Random.rand() * 100
+
+	hash = hash.to_a
+	sums = []
+
+	hash.each_with_index { |e, i| sums << (sums.last || 0) + hash[i][1][:pct] }
+	hash.each_with_index { |e, i| return e[0] if rand < sums[i] }
 end
 
 # Creates a Hash table loaded from an input file
