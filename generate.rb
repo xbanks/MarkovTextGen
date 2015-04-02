@@ -2,28 +2,23 @@ require "./gen_utils.rb"
 
 # Generates a sentence with up to @num_words amount of words based on the @first word
 # This is done using the given hash that should have been created using the given train.rb file
-
-
-
-def generate_sentence(hash, first_word, num_words = 10)
+def generate_sentence(hash, first_word, chain_length = 2, num_words = 50)
 	sentence = [first_word]
 	sentence_ends = ['.', '!', '?']
 
 	(num_words-1).times do
 		arr = []
-		arr << sentence[-2] if sentence.size > 1
-		arr << sentence[-1]
-		# puts hash[arr]
-		if hash[arr]
-			sentence << draw(hash[arr][:HASH]) 
-		elsif hash[arr.last]
-			sentence << draw(hash[arr.last][:HASH])
-		else
-			return sentence.join(" ")
+
+		1.upto(chain_length) { |j| arr.unshift(sentence[-j]) if sentence[-j] }
+		if(!hash[arr])
+			arr.shift until hash[arr] or arr.size == 1
 		end
+		a = arr.size > 1 ? arr : arr.last
+		sentence << draw(hash[arr].hash) if arr.size > 1
+		sentence << draw(hash[arr.last].hash) if arr.size == 1 and hash[arr.last]
 
 		sentence_ends.each do |delim|
-			return sentence.join(" ") if sentence.last.include? delim
+			return sentence.join(" ") if sentence[-1].include?(delim)
 		end
 	end 
 
@@ -50,17 +45,17 @@ def load_hash(hash = nil)
 	filename = filename.downcase == "def" ? default : filename
 	filetype = filename.split(".").last
 	
-	file = File.open(filename, "r") if exists = File.exist?(filename)
+	file = File.open(filename, "rb+") if exists = File.exist?(filename)
 
 	if !exists
 		puts "File #{filename} does not exist"
 		exit(0)
-	elsif (file_string = file.readlines.join).length == 0
-		puts "File #{filename} is empty"
-		exit(0)
+#	elsif (file_string = file.readlines).length == 0
+#		puts "File #{filename} is empty"
+#		exit(0)
 	end
 
-	benchmark = Benchmark.measure {puts "LOADING YAML"; hash = YAML::load(file_string) } if filetype == "yaml"
+	benchmark = Benchmark.measure {puts "LOADING YAML"; hash = Marshal::load(file) } if filetype == "yaml"
 	benchmark = Benchmark.measure {puts "LOADING JSON"; hash = JSON.parse(file_string) } if filetype == "json"
 	if hash == nil
 		puts "invalid filename" 
@@ -69,6 +64,7 @@ def load_hash(hash = nil)
 	
 	puts "LOAD TIME: #{benchmark}"
 	puts "DONE\n"
+	file.close
 	return hash
 end
 
@@ -101,7 +97,10 @@ def make_sentence(hash_table)
 	start_word = STDIN.gets.downcase.chomp 
 	print "Word count: "
 	word_count = STDIN.gets.chomp.to_i
-	sentence = generate_sentence(hash_table, start_word, word_count)
+	print "Chain length: "
+	chain_length = STDIN.gets.chomp.to_i
+	sentence = generate_sentence(hash_table, start_word, chain_length, word_count)
+	# sentence = generate_sentence(hash_table, start_word)
 	
 	puts "#{sentence}\n"
 	outfile = File.open("genout.txt", "a")
@@ -111,6 +110,7 @@ def make_sentence(hash_table)
 	outfile.close
 	puts "DONE"
 end
+
 
 hash = get_hash
 another = 'y'
